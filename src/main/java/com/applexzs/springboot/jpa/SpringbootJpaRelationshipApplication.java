@@ -2,7 +2,9 @@ package com.applexzs.springboot.jpa;
 
 import com.applexzs.springboot.jpa.entities.Address;
 import com.applexzs.springboot.jpa.entities.Client;
+import com.applexzs.springboot.jpa.entities.ClientDetails;
 import com.applexzs.springboot.jpa.entities.Invoice;
+import com.applexzs.springboot.jpa.repositories.IClientDetailsRepository;
 import com.applexzs.springboot.jpa.repositories.IClientRepository;
 import com.applexzs.springboot.jpa.repositories.IInvoiceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +14,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 @SpringBootApplication
 public class SpringbootJpaRelationshipApplication implements CommandLineRunner {
@@ -23,6 +27,9 @@ public class SpringbootJpaRelationshipApplication implements CommandLineRunner {
     @Autowired
     private IInvoiceRepository invoiceRepository;
 
+    @Autowired
+    private IClientDetailsRepository clientDetailsRepository;
+
     public static void main(String[] args) {
         SpringApplication.run(SpringbootJpaRelationshipApplication.class, args);
     }
@@ -30,7 +37,94 @@ public class SpringbootJpaRelationshipApplication implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        oneToManyInvoiceBidireccional();
+        oneToOneFindById();
+    }
+
+    @Transactional
+    public void oneToOneFindById(){
+        ClientDetails clientDetails = new ClientDetails(true, 5000);
+        clientDetailsRepository.save(clientDetails);
+
+        Optional<Client> clientOptional = clientRepository.findById(2L);  //new Client("Erba", "Pura");
+        clientOptional.ifPresent(client -> {
+            client.setClientDetails(clientDetails);
+            clientRepository.save(client);
+
+            System.out.println(client);
+
+        });
+
+    }
+
+    @Transactional
+    public void oneToOne(){
+        ClientDetails clientDetails = new ClientDetails(true, 5000);
+        clientDetailsRepository.save(clientDetails);
+
+        Client client = new Client("Erba", "Pura");
+        client.setClientDetails(clientDetails);
+        clientRepository.save(client);
+
+        System.out.println(client);
+
+    }
+
+    @Transactional
+    public void removeInvoiceBidireccionalFinById() {
+        Optional<Client> optionalClient = clientRepository.findOne(1L);
+
+        optionalClient.ifPresent(client -> {
+
+            Invoice invoice1 = new Invoice("Compras de la casa", 5000L);
+            Invoice invoice2 = new Invoice("Compras de oficina", 8000L);
+
+            Set<Invoice> invoices = new HashSet<>();
+            invoices.add(invoice1);
+            invoices.add(invoice2);
+            client.setInvoices(invoices);
+
+            invoice1.setClient(client);
+            invoice2.setClient(client);
+            clientRepository.save(client);
+
+            System.out.println(client);
+
+        });
+
+        Optional<Client> optionalClientDb = clientRepository.findOne(1L);
+        optionalClientDb.ifPresent(client -> {
+            Optional<Invoice> invoiceOptional = invoiceRepository.findById(2L);
+            invoiceOptional.ifPresent(invoice -> {
+                client.getInvoices().remove(invoice);
+                invoice.setClient(null);
+                clientRepository.save(client);
+                System.out.println(client);
+            });
+        });
+    }
+
+
+    @Transactional
+    public void oneToManyInvoiceBidireccionalFinById() {
+        Optional<Client> optionalClient = clientRepository.findOne(1L);
+        optionalClient.ifPresent(client -> {
+
+            Invoice invoice1 = new Invoice("Compras de la casa", 5000L);
+            Invoice invoice2 = new Invoice("Compras de oficina", 8000L);
+
+            Set<Invoice> invoices = new HashSet<>();
+            invoices.add(invoice1);
+            invoices.add(invoice2);
+            client.setInvoices(invoices);
+
+            invoice1.setClient(client);
+            invoice2.setClient(client);
+            clientRepository.save(client);
+
+            System.out.println(client);
+
+        });
+
     }
 
     @Transactional
@@ -40,7 +134,11 @@ public class SpringbootJpaRelationshipApplication implements CommandLineRunner {
         Invoice invoice1 = new Invoice("Compras de la casa", 5000L);
         Invoice invoice2 = new Invoice("Compras de oficina", 8000L);
 
-        client.setInvoices(Arrays.asList(invoice1, invoice2));
+        Set<Invoice> invoices = new HashSet<>();
+        invoices.add(invoice1);
+        invoices.add(invoice2);
+
+        client.setInvoices(invoices);
 
         invoice1.setClient(client);
         invoice2.setClient(client);
@@ -57,13 +155,17 @@ public class SpringbootJpaRelationshipApplication implements CommandLineRunner {
             Address address1 = new Address("El verjel", 1234);
             Address address2 = new Address("Vasco de Gama", 9875);
 
-            client.setAddresses(Arrays.asList(address1, address2));
+            Set<Address> adresses = new HashSet<>();
+            adresses.add(address1);
+            adresses.add(address2);
+
+            client.setAddresses(adresses);
 
             clientRepository.save(client);
 
             System.out.println(client);
 
-            Optional<Client> optionalClient2 = clientRepository.findOne(2L);
+            Optional<Client> optionalClient2 = clientRepository.findOneWithAddresses(2L);
             optionalClient2.ifPresent(c -> {
                 c.getAddresses().remove(address2);
                 clientRepository.save(c);
@@ -100,7 +202,10 @@ public class SpringbootJpaRelationshipApplication implements CommandLineRunner {
             Address address1 = new Address("El verjel", 1234);
             Address address2 = new Address("Vasco de Gama", 9875);
 
-            client.setAddresses(Arrays.asList(address1, address2));
+            Set<Address> adresses = new HashSet<>();
+            adresses.add(address1);
+            adresses.add(address2);
+            client.setAddresses(adresses);
 
             clientRepository.save(client);
 

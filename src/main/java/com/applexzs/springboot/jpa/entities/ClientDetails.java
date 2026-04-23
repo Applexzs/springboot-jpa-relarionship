@@ -14,6 +14,10 @@ public class ClientDetails {
     private boolean premium;
     private Integer points;
 
+    @OneToOne
+    @JoinColumn(name = "id_cliente_detalle")
+    private Client client;
+
 
     public ClientDetails() {
     }
@@ -47,6 +51,13 @@ public class ClientDetails {
         this.points = points;
     }
 
+    public Client getClient() {
+        return client;
+    }
+
+    public void setClient(Client client) {
+        this.client = client;
+    }
 
     @Override
     public String toString() {

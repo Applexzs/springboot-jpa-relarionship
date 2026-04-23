@@ -59,14 +59,14 @@ public class Address {
 
     @Override
     public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
-
-        Address address = (Address) o;
-        return id.equals(address.id);
+        if (this == o) return true;
+        if (!(o instanceof Address other)) return false;
+        // ✅ Null-safe: si id es null, no son iguales (excepto misma referencia)
+        return this.id != null && this.id.equals(other.id);
     }
 
     @Override
     public int hashCode() {
-        return id.hashCode();
+        return this.id != null ? Long.hashCode(this.id) : 0;
     }
 }

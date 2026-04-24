@@ -4,6 +4,7 @@ package com.applexzs.springboot.jpa.entities;
 import jakarta.persistence.*;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 @Entity
@@ -61,6 +62,16 @@ public class Student {
         this.courses = courses;
     }
 
+    public void addCourse(Course course){
+        this.courses.add(course);
+        course.getStudents().add(this);
+    }
+
+    public void removeCourse(Course course){
+        this.courses.remove(course);
+        course.getStudents().remove(this);
+    }
+
     @Override
     public String toString() {
         return "Student{" +
@@ -69,5 +80,20 @@ public class Student {
                 ", lastname='" + lastname + '\'' +
                 ", courses=" + courses +
                 '}';
+    }
+
+    @Override
+    public final boolean equals(Object o) {
+        if (!(o instanceof Student student)) return false;
+
+        return Objects.equals(id, student.id) && Objects.equals(name, student.name) && Objects.equals(lastname, student.lastname) && Objects.equals(courses, student.courses);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Objects.hashCode(id);
+        result = 31 * result + Objects.hashCode(name);
+        result = 31 * result + Objects.hashCode(lastname);
+        return result;
     }
 }
